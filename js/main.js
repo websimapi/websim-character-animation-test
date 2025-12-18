@@ -11,7 +11,7 @@ const SCENE_CONFIG = {
 };
 
 // --- Globals ---
-let camera, scene, renderer, clock;
+let camera, scene, renderer, clock, controls;
 let characterMixer;
 let characterActions = {};
 let activeAction, previousAction;
@@ -26,8 +26,8 @@ function init() {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-    camera.position.set(0, 200, 400);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+    camera.position.set(0, 150, 350);
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(SCENE_CONFIG.backgroundColor);
@@ -43,10 +43,10 @@ function init() {
     const dirLight = new THREE.DirectionalLight(0xffffff, 3);
     dirLight.position.set(0, 200, 100);
     dirLight.castShadow = true;
-    dirLight.shadow.camera.top = 180;
-    dirLight.shadow.camera.bottom = -100;
-    dirLight.shadow.camera.left = -120;
-    dirLight.shadow.camera.right = 120;
+    dirLight.shadow.camera.top = 200;
+    dirLight.shadow.camera.bottom = -200;
+    dirLight.shadow.camera.left = -200;
+    dirLight.shadow.camera.right = 200;
     scene.add(dirLight);
 
     // 3. Ground
@@ -74,8 +74,12 @@ function init() {
     container.appendChild(renderer.domElement);
 
     // 6. Controls
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 100, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 50;
+    controls.maxDistance = 800;
     controls.update();
 
     // 7. Inputs
@@ -103,6 +107,7 @@ function loadAssets() {
     
     // Load Idle (Base Model + Animation)
     fbxLoader.load('/idle.fbx', (object) => {
+        object.scale.setScalar(100);
         characterMixer = new THREE.AnimationMixer(object);
         
         // Setup Action: Idle
@@ -137,6 +142,7 @@ function loadAssets() {
     // --- Load Static OBJ Reference ---
     const objLoader = new OBJLoader(manager);
     objLoader.load('/character.obj', (object) => {
+        object.scale.setScalar(100);
         object.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
@@ -229,6 +235,7 @@ function animate() {
     
     updateMovement(delta);
 
+    if (controls) controls.update();
     renderer.render(scene, camera);
 }
 
